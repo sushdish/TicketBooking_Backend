@@ -9,8 +9,7 @@ const cors = require("cors");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const categoryRoutes = require("./routes/category");
-const productRoutes = require("./routes/product");
-const orderRoutes = require("./routes/order");
+const tripsRoutes = require("./routes/trips");
 const stripeRoutes = require("./routes/stripepayment");
 const braintreeRoutes = require("./routes/braintree");
 const bookingRoutes = require("./routes/booking")
@@ -41,8 +40,7 @@ mongoose
 app.use("/api", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api", categoryRoutes);
-app.use("/api", productRoutes);
-app.use("/api", orderRoutes);
+app.use("/api", tripsRoutes);
 app.use("/api", stripeRoutes);
 app.use("/api", braintreeRoutes);
 app.use("/api", bookingRoutes);

@@ -5,7 +5,6 @@ const User = require("../models/user")
 const mongoose = require('mongoose');
 
 exports.bookTrip = async (req, res) => {
-  // Validate the request using express-validator
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -16,33 +15,31 @@ exports.bookTrip = async (req, res) => {
     const { tripId, paymentReferenceNumber, paymentType, travelClass, seatType } = req.body;
     const { userId } = req.params;
 
-    // Check if the trip exists
-    // const trip = await Trip.findById(tripId);
-    // if (!trip) {
-    //   return res.status(404).json({ error: 'Trip not found' });
-    // }
+    console.log('Request Body:', req.body);
+   
 
     const user = await User.findById(userId)
     if (!user) {
       return res.status(404).json({error: 'User not found'})
     }
 
-    // Create a new booking
     const booking = new Booking({
       userId: userId,
       tripId,
       paymentReferenceNumber,
       booking_details: {
         paymentType,
-        travelClass,
+        travelClass,  
         seatType
       },
     });
 
-    // Save the booking to the database
+    console.log(booking, "11")
+  
     const savedBooking = await booking.save();
+    console.log('Saved Booking:', savedBooking);
 
-    // You may perform additional logic here, such as updating trip details, sending notifications, etc.
+    
 
     res.json(savedBooking);
     console.log(savedBooking, "84")

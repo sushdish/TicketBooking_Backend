@@ -2,6 +2,7 @@ const formidable = require("formidable");
 const _ = require("lodash");
 const fs = require("fs");
 const moment = require('moment');
+const logger = require("./logger")
 
 const Trip = require("../models/trips");
 const User = require("../models/user");
@@ -10,51 +11,16 @@ const { handleError, handleSuccess } = require("../utils/handleResponse");
 exports.getTripById = (req, res, next, id) => {
   Trip.findById(id)
     .populate("categry", "_id name")
-    .exec((err, trip) => {
-      if (err || !trip) return handleError(res, "Could not find user!", 400);
+    .exec(async (err, trip) => {
+      if (err || !trip) {
+        await logger.createLogger(err.message, "trips", "getTripById")
+        return handleError(res, "Could not find user!", 400);
+      }
       req.trip = trip;
       next();
     });
 };
 
-// exports.createTrip = (req, res,) => {
-//   const form = formidable.IncomingForm();
-//   form.keepExtensions = true;
-
-//   form.parse(req, (err, fields, files) => {
-//     if (err) return handleError(res, "Could not process data!!", 400);
-
-//     // const userId =req.params.userId;
-
-//     // if (!userId){
-//     //   return handleError(res, "User not found in localStorage!", 404);
-//     // }
-
-//     // User.findById(userId)
-//     // .populate("user", "_id name")
-//     // .exec((err, user) => {
-//     //   if (err) return handleError(res, "Orders not found!", 400);
-
-
-//     const trip = new Trip(fields);
-
-//     const { name, category, tripNumber,  trips_details } = fields;
-
-//     if (!name || !category || !tripNumber || !trips_details)
-//       return handleError(res, "Please include all fields!", 400);
-
-
-//     trip.save((err, trip) => {
-//       if (err) return handleError(res, "Could not save trip!", 400);
-//       res.json(trip);
-//       console.log(trip, "A")
-
-      
-//     });
-
-    
-//   });
-// }
 
 exports.createTrip = async (req, res) => {
   try {
@@ -74,17 +40,19 @@ exports.createTrip = async (req, res) => {
     }
 
     const { userId } = req.params;
+    const { categoryId } = req.body;
 
-    const StartTime = moment()
-    const EndTime = moment();
+    req.body.trips_details.StartTime = moment(req.body.trips_details.StartTime).format('YYYY-MM-DD HH:mm:ss');
+    req.body.trips_details.EndTime = moment(req.body.trips_details.EndTime).format('YYYY-MM-DD HH:mm:ss');
+
+    const StartTime = moment(req.body.trips_details.StartTime)
+    const EndTime = moment(req.body.trips_details.EndTime);
 
     const elapsedTime = EndTime.diff(StartTime, 'milliseconds');
 
     console.log(`[${moment().format('DD/MM/YYYY HH:mm:ss')}] ${req.method} ${req.url} - Status: ${res.statusCode} - Time taken: ${elapsedTime}ms`);
-    
 
-//     Trip.trips_details.StartTime = moment(req.body.trips_details.StartTime).format('YYYY-MM-DD HH:mm:ss');
-// Trip.trips_details.EndTime = moment(req.body.trips_details.EndTime).format('YYYY-MM-DD HH:mm:ss');
+
 
     // Check if the user exists
     const user = await User.findById(userId);
@@ -95,27 +63,37 @@ exports.createTrip = async (req, res) => {
     // Create a new trip with user information
     const trip = new Trip({
       userId: userId,
+      categoryId,
       ...req.body,
     });
 
     // Save the trip to the database
     const savedTrip = await trip.save();
+    // const categorryId = savedTrip.categoryId
+    console.log(savedTrip, "2")
 
-    res.json(savedTrip);
+    // res.json({
+    //   message: "Successfully created Trip",
+    //   data: savedTrip,
+    //   // categoryId: categorryId
+    // });
+    res.json({ message: "Successfully created Trip", savedTrip });
+
   } catch (error) {
+    await logger.createLogger(error.message, "trips", "createTrip")
     console.error('Error creating trip:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-  // const trip = new Trip(req.body)
-  // trip.save((err, trip) => {
-  //   if (err) return handleError(res, "Could not save product!", 400);
-  //   res.json(trip)
-  //   console.log(trip, "DD")
-  // })
+// const trip = new Trip(req.body)
+// trip.save((err, trip) => {
+//   if (err) return handleError(res, "Could not save product!", 400);
+//   res.json(trip)
+//   console.log(trip, "DD")
+// })
 
- 
+
 
 // Trip.trips_details.StartTime = moment(trips_details.StartTime).format('YYYY-MM-DD HH:mm:ss');
 // Trip.trips_details.EndTime = moment(trips_details.EndTime).format('YYYY-MM-DD HH:mm:ss');
@@ -147,19 +125,45 @@ exports.getTrip = (req, res) => {
   return res.send(trip);
 };
 
-exports.getAllTrip = (req, res) => {
-  let limit = req.query.limit ? parseInt(req.query.limit) : 8;
-  let sortBy = req.query.sortBy ? req.query.sortBy : "_id";
+exports.getAllTrip = async (req, res) => {
+  // let limit = req.query.limit ? parseInt(req.query.limit) : 8;
+  // let sortBy = req.query.sortBy ? req.query.sortBy : "_id";
 
-  Trip.find()
-    // .select("-photo")
-    .limit(limit)
-    .sort([[sortBy, "asc"]])
-    .populate("category")
-    .exec((err, trip) => {
-      if (err) return handleError(res, "Could not fetch trip!", 400);
-      res.json(trip);
-    });
+  // Trip.find()
+  //   // .select("-photo")
+  //   .limit(limit)
+  //   .sort([[sortBy, "asc"]])
+  //   .populate("category")
+  //   .exec((err, trip) => {
+  //     if (err) return handleError(res, "Could not fetch trip!", 400);
+  //     res.json(trip);
+  //   });
+
+
+
+console.log("Hits here")
+  try {
+    const pipeline = [
+      { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
+      { $limit: 5 },
+    ]
+
+    const result = await Trip.aggregate(pipeline)
+    res.json(result)
+  } catch (error) {
+    await logger.createLogger(error.message, "trips", "getAllTrip")
+    res.json(error.message)
+  }
+
+
+
+};
+
+exports.getEveryTrip = (req, res) => {
+  Trip.find().exec((err, trips) => {
+    if (err) return handleError(res, "Could not get categories!", 400);
+    res.json(trips);
+  });
 };
 
 // exports.updateTrip = (req, res) => {
@@ -236,11 +240,12 @@ exports.getAllTrip = (req, res) => {
 
 
 exports.updateTrip = (req, res) => {
-  const userId = req.params.user._id;
+  const userId = req.params.userId;
   console.log(userId, "TT")
   const tripId = req.params.tripId;
   console.log(tripId, "YY")
   const fields = req.body; // Assuming `fields` contains the fields you want to update
+  console.log("Updating trip with fields:", fields);
 
   // Check if the user exists
   User.findById(userId, (err, user) => {
@@ -252,11 +257,14 @@ exports.updateTrip = (req, res) => {
 
     // Update the trip if the user exists
     Trip.findOneAndUpdate(
-      { _id: tripId, user: userId },
+      { _id: tripId },
       { $set: fields },
       { new: true, useFindAndModify: false },
       (err, updatedTrip) => {
+        console.log("Fields to update:", fields);
+        console.log("Updated trip:", updatedTrip);
         if (err) {
+          console.error('Error updating trip:', err);
           return handleError(res, "Could not update trip!", 400);
         }
         if (!updatedTrip) {
@@ -265,6 +273,7 @@ exports.updateTrip = (req, res) => {
           });
         }
         res.json(updatedTrip);
+        console.log(updatedTrip)
       }
     );
   });

@@ -11,7 +11,12 @@ const {
   updateTrip,
   deleteTrip,
   getAllTrip,
-} = require("../controllers/product");
+  getEveryTrip,
+} = require("../controllers/trips");
+
+router.get("/trips", getAllTrip);
+router.get("/alltrips", getEveryTrip);
+
 
 router.param("userId", getUserByID);
 router.param("tripId", getTripById);
@@ -27,7 +32,6 @@ router.post(
 router.get("/trip/:tripId", getTrip);
 // router.get("/product/photo/:productId", getPhoto);
 
-router.get("/trips", getAllTrip);
 // router.get("/products/categories", getAllUniqueCategories);
 
 router.put(

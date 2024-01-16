@@ -1,4 +1,6 @@
 const Cancellation = require('../models/cancellation');
+const Bookings = require('../models/booking');
+
 const Refund = require('../models/refund')
 const Trip = require("../models/trips");
 const { validationResult } = require('express-validator');
@@ -50,6 +52,20 @@ exports.cancellation = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
+
+// exports.cancellation = (req, res) => {
+//   const cancel = new Cancellation(req.body);
+//   cancel.save((err, cancel) => {
+//     if (err) return handleError(res, "Could not cancel booking!", 400);
+//     res.json({message: "Successfully cancelled booking", cancel });
+//   });
+// }
+
+
+
+
+
+
 
 exports.getUserCancellations = async (req, res) => {
   const errors = validationResult(req);
@@ -202,7 +218,7 @@ exports.adminReason = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const {adminReason, cancellationId} = req.body
+    const {adminReason, cancellationId, bookingId, refundId} = req.body
 
     const updatedCancellation = await Cancellation.findByIdAndUpdate(
       {_id: cancellationId},
@@ -214,8 +230,19 @@ exports.adminReason = async (req, res) => {
       return res.status(404).json({ error: 'Cancellation not found' });
     }
 
+    const deleteBooking = await Bookings.findByIdAndDelete(
+      {_id : bookingId},)
+
+    // const refund = await Refund.findByIdAndUpdate(
+    //   {_id: refundId},
+    //   {$set: {amount}},
+    //   {new: true}
+    //   )
+
     console.log(updatedCancellation);
     res.json(updatedCancellation);
+    res.json(deleteBooking);
+    // res.json(refund)
   } catch (error) {
     console.error('Error fetching user bookings:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -347,3 +374,14 @@ exports.getAdminResolvedReq = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
+
+// await new EmailLog({
+//   from: "donotreply@nathanhr.ae",
+//   to: toEmail,
+//   cc: cc_emails,
+//   subject: subject,
+//   body: body, 
+//   attachments: attachments,
+// }).save()

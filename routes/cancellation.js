@@ -4,7 +4,7 @@ const router = express.Router();
 
 const { cancellation} = require('../controllers/cancellation');
 const { getUserByID } = require("../controllers/user");
-const {getTripById} = require("../controllers/product");
+const {getTripById} = require("../controllers/trips");
 const { isSignedIn, isAuthenticated, isAdmin } = require("../controllers/auth");
 const {getUserCancellations, getPendingCancellations, adminReason, getSolvedRequest, getAdminResolvedReq} = require("../controllers/cancellation")
 

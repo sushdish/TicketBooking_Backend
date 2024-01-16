@@ -22,6 +22,7 @@ exports.signup = (req, res) => {
       name: user.name,
       email: user.email,
       id: user._id,
+      message: "Successfully Signed Up"
     });
   });
 };
@@ -57,6 +58,7 @@ exports.signin = (req, res) => {
 
 exports.signout = (req, res) => {
   res.clearCookie("token");
+  
   return handleSuccess(res, "user signed out!!");
 };
 

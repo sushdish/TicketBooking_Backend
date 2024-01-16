@@ -14,7 +14,7 @@ exports.createCategory = (req, res) => {
   const category = new Category(req.body);
   category.save((err, category) => {
     if (err) return handleError(res, "Could not save category!", 400);
-    res.json({ category });
+    res.json({message: "Successfully created category", category });
   });
 };
 
