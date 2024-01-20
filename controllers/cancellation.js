@@ -66,7 +66,7 @@ exports.cancellation = async (req, res) => {
 
 
 
-
+// User side
 exports.getUserCancellations = async (req, res) => {
   const errors = validationResult(req);
 
@@ -139,6 +139,26 @@ exports.getUserCancellations = async (req, res) => {
     console.error('Error fetching user bookings:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+};
+
+exports.pigination = async (req, res) => {
+  
+console.log("Hits here")
+  try {
+    const pipeline = [
+      { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
+      { $limit: 5 },
+    ]
+
+    const result = await Cancellation.aggregate(pipeline)
+    res.json(result)
+  } catch (error) {
+    await logger.createLogger(error.message, "trips", "getAllTrip")
+    res.json(error.message)
+  }
+
+
+
 };
 
 // Admin Side 

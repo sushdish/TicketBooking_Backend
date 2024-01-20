@@ -107,3 +107,22 @@ exports.getUserBookings = async (req, res) => {
   }
 };
 
+exports.getPigination = async (req, res) => {
+  
+  console.log("Hits here")
+    try {
+      const pipeline = [
+        { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
+        { $limit: 5 },
+      ]
+  
+      const result = await Booking.aggregate(pipeline)
+      res.json(result)
+    } catch (error) {
+      await logger.createLogger(error.message, "trips", "getAllTrip")
+      res.json(error.message)
+    }
+  
+  
+  
+  };

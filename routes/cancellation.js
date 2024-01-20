@@ -6,11 +6,11 @@ const { cancellation} = require('../controllers/cancellation');
 const { getUserByID } = require("../controllers/user");
 const {getTripById} = require("../controllers/trips");
 const { isSignedIn, isAuthenticated, isAdmin } = require("../controllers/auth");
-const {getUserCancellations, getPendingCancellations, adminReason, getSolvedRequest, getAdminResolvedReq} = require("../controllers/cancellation")
+const {getUserCancellations, getPendingCancellations, adminReason, getSolvedRequest, getAdminResolvedReq, pigination} = require("../controllers/cancellation")
 
 router.param("userId", getUserByID);
 // router.param("tripId", getTripById);
-
+router.get("/pigination", pigination)
 router.post("/cancellation/:userId", isSignedIn, isAuthenticated, cancellation);
 router.get("/cancellation/:userId", isSignedIn, isAuthenticated, getUserCancellations)
 router.get("/cancellation/pending/:userId", isSignedIn, isAuthenticated, isAdmin, getPendingCancellations )
