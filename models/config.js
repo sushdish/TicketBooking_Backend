@@ -1,16 +1,10 @@
 const mongoose = require('mongoose')
 
 const configSchema = new mongoose.Schema({
-    flights: {
-        type: Object,
-    },
-    Buses: {
-        type: Object,
-    },
-    Railways: {
-        type: Object,
-    },
+    tripConfig : {
+        type: Array,
+    }
 
 }, { timestamps: true })
 
-module.exports = mongoose.model('Confi', configSchema)
+module.exports = mongoose.model('Configuration', configSchema)

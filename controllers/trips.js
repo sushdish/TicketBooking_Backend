@@ -42,15 +42,15 @@ exports.createTrip = async (req, res) => {
     const { userId } = req.params;
     const { categoryId } = req.body;
 
-    req.body.trips_details.StartTime = moment(req.body.trips_details.StartTime).format('YYYY-MM-DD HH:mm:ss');
-    req.body.trips_details.EndTime = moment(req.body.trips_details.EndTime).format('YYYY-MM-DD HH:mm:ss');
+    // req.body.trips_details.StartTime = moment(req.body.trips_details.StartTime).format('YYYY-MM-DD HH:mm:ss');
+    // req.body.trips_details.EndTime = moment(req.body.trips_details.EndTime).format('YYYY-MM-DD HH:mm:ss');
 
-    const StartTime = moment(req.body.trips_details.StartTime)
-    const EndTime = moment(req.body.trips_details.EndTime);
+    // const StartTime = moment(req.body.trips_details.StartTime)
+    // const EndTime = moment(req.body.trips_details.EndTime);
 
-    const elapsedTime = EndTime.diff(StartTime, 'milliseconds');
+    // const elapsedTime = EndTime.diff(StartTime, 'milliseconds');
 
-    console.log(`[${moment().format('DD/MM/YYYY HH:mm:ss')}] ${req.method} ${req.url} - Status: ${res.statusCode} - Time taken: ${elapsedTime}ms`);
+    // console.log(`[${moment().format('DD/MM/YYYY HH:mm:ss')}] ${req.method} ${req.url} - Status: ${res.statusCode} - Time taken: ${elapsedTime}ms`);
 
 
 
@@ -143,6 +143,10 @@ exports.getAllTrip = async (req, res) => {
 
 console.log("Hits here")
   try {
+
+    // const TotalTrips = await Trip.aggregate([])
+    // console.log(TotalTrips , "TotalTrips")
+
     const pipeline = [
       { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
       { $limit: 5 },

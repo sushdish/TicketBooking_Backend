@@ -178,7 +178,7 @@ exports.getPendingCancellations = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const pendingCancellations = await Cancellation.aggregate([
+    const pipeline =  [
       {
         $match: {
           // 'userId':  mongoose.Types.ObjectId(req.params.userId),
@@ -211,12 +211,28 @@ exports.getPendingCancellations = async (req, res) => {
           "StartTime":"$result2.trips_details.StartTime" ,
           "EndTime":"$result2.trips_details.EndTime",
         }
-      }
-    ]);
+        
+      },
+      
+    ]
 
-    console.log('Pending Cancellations:', pendingCancellations);
+    const AllCancellation = await Cancellation.aggregate(pipeline)
 
-    res.json(pendingCancellations);
+    pipeline.push(
+      { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
+      { $limit: 5 },
+    )
+
+    const pendingCancellations = await Cancellation.aggregate(pipeline);
+
+    // console.log('Pending Cancellations:', pendingCancellations);
+    // console.log(AllCancellation.length) 
+
+
+    res.json({
+      cancellation : pendingCancellations, 
+      totalCancellation : AllCancellation.length
+    });
   } catch (error) {
     console.error('Error fetching user bookings:', error);
     res.status(500).json({ error: 'Internal Server Error' });
