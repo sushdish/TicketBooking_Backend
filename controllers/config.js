@@ -24,12 +24,12 @@ exports.tripConfig = async (req, res) => {
     let pipeline = [
         {
             $project:{
-            //   "tripConfig": 1, 
               "Category": {
                 $filter: {
                    input: "$tripConfig",
                    as: "item",
                    cond: { $eq: [ "$$item.categoryId", req.params.categoryId ] }
+                  
                 }
              }
             }
@@ -39,10 +39,18 @@ exports.tripConfig = async (req, res) => {
              'path':'$Category'
            } 
          },
+      //    {
+      //     $lookup: {
+      //         from: 'categories', 
+      //         localField: 'Category.categoryId',
+      //         foreignField: '_id',
+      //         as: "categoryInfo"
+      //     }
+      // },
     ]
 
 
     const data = await Configuration.aggregate(pipeline)
-
+    console.log(data, "54")
     res.json(data[0].Category)
 }
