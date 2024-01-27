@@ -126,23 +126,14 @@ exports.getTrip = (req, res) => {
 };
 
 exports.getAllTrip = async (req, res) => {
-  // let limit = req.query.limit ? parseInt(req.query.limit) : 8;
-  // let sortBy = req.query.sortBy ? req.query.sortBy : "_id";
-
-  // Trip.find()
-  //   // .select("-photo")
-  //   .limit(limit)
-  //   .sort([[sortBy, "asc"]])
-  //   .populate("category")
-  //   .exec((err, trip) => {
-  //     if (err) return handleError(res, "Could not fetch trip!", 400);
-  //     res.json(trip);
-  //   });
-
-
 
 console.log("Hits here")
   try {
+
+    Trip.find().exec((err, trips) => {
+      if (err) return handleError(res, "Could not get categories!", 400);
+      res.json(trips);
+    });
 
     // const TotalTrips = await Trip.aggregate([])
     // console.log(TotalTrips , "TotalTrips")
@@ -154,6 +145,7 @@ console.log("Hits here")
 
     const result = await Trip.aggregate(pipeline)
     res.json(result)
+
   } catch (error) {
     await logger.createLogger(error.message, "trips", "getAllTrip")
     res.json(error.message)

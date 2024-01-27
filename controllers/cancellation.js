@@ -53,19 +53,6 @@ exports.cancellation = async (req, res) => {
   }
 }
 
-// exports.cancellation = (req, res) => {
-//   const cancel = new Cancellation(req.body);
-//   cancel.save((err, cancel) => {
-//     if (err) return handleError(res, "Could not cancel booking!", 400);
-//     res.json({message: "Successfully cancelled booking", cancel });
-//   });
-// }
-
-
-
-
-
-
 // User side
 exports.getUserCancellations = async (req, res) => {
   const errors = validationResult(req);
@@ -86,7 +73,7 @@ exports.getUserCancellations = async (req, res) => {
     // const tripId = mongoose.Types.ObjectId(req.query.tripId);
     // console.log(tripId, "WW");
     // Use $match aggregation stage to filter bookings for the user
-    const userBookings = await Cancellation.aggregate([
+    const pipeline = [
       {
         $match: {
           'userId':  mongoose.Types.ObjectId(req.params.userId), // Assuming the 'user' field in Booking model references the 'User' model
@@ -132,9 +119,24 @@ exports.getUserCancellations = async (req, res) => {
           "EndTime":"$result2.trips_details.EndTime",
         }
       }
-    ]);
+    ];
 
-    res.json(userBookings);
+    const AllBooking = await Bookings.aggregate(pipeline)
+
+    pipeline.push(
+      { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
+      { $limit: 5 },
+      
+    )
+    console.log("req.query.page:", req.query.page);
+
+
+    const bookings = await Bookings.aggregate(pipeline); 
+
+    res.json({
+      booking: bookings,
+      allBooking: AllBooking
+    });
   } catch (error) {
     console.error('Error fetching user bookings:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -177,12 +179,14 @@ exports.getPendingCancellations = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
+    
+    // const page = parseInt(req.query.page) || 1;
 
     const pipeline =  [
       {
         $match: {
           // 'userId':  mongoose.Types.ObjectId(req.params.userId),
-          'requestSolved':false, // Assuming the 'user' field in Booking model references the 'User' model
+          'requestSolved':false, 
         }
 
       },
@@ -216,19 +220,25 @@ exports.getPendingCancellations = async (req, res) => {
       
     ]
 
+    console.log('User ID:', req.params.userId);
+    console.log('Pipeline:', pipeline);
+    // console.log('Page Value:', page);
+
     const AllCancellation = await Cancellation.aggregate(pipeline)
 
     pipeline.push(
       { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
       { $limit: 5 },
     )
+    console.log("req.query.page:", req.query.page);
+
 
     const pendingCancellations = await Cancellation.aggregate(pipeline);
 
-    // console.log('Pending Cancellations:', pendingCancellations);
-    // console.log(AllCancellation.length) 
+    console.log('Pending Cancellations:', pendingCancellations);
+    console.log(AllCancellation.length) 
 
-
+  
     res.json({
       cancellation : pendingCancellations, 
       totalCancellation : AllCancellation.length
@@ -238,6 +248,8 @@ exports.getPendingCancellations = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
 
 exports.adminReason = async (req, res) => {
   const errors = validationResult(req);
