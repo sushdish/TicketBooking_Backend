@@ -53,7 +53,7 @@ exports.cancellation = async (req, res) => {
   }
 }
 
-// User side
+// User side (My Cancellations)
 exports.getUserCancellations = async (req, res) => {
   const errors = validationResult(req);
 
@@ -121,7 +121,7 @@ exports.getUserCancellations = async (req, res) => {
       }
     ];
 
-    const AllBooking = await Bookings.aggregate(pipeline)
+    const AllBooking = await Cancellation.aggregate(pipeline)
 
     pipeline.push(
       { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
@@ -131,11 +131,11 @@ exports.getUserCancellations = async (req, res) => {
     console.log("req.query.page:", req.query.page);
 
 
-    const bookings = await Bookings.aggregate(pipeline); 
+    const result = await Cancellation.aggregate(pipeline); 
 
     res.json({
-      booking: bookings,
-      allBooking: AllBooking
+      cancellation: result,
+      totalUserCancellation: AllBooking.length
     });
   } catch (error) {
     console.error('Error fetching user bookings:', error);
@@ -225,6 +225,7 @@ exports.getPendingCancellations = async (req, res) => {
     // console.log('Page Value:', page);
 
     const AllCancellation = await Cancellation.aggregate(pipeline)
+    console.log(AllCancellation, "228")
 
     pipeline.push(
       { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
@@ -237,6 +238,7 @@ exports.getPendingCancellations = async (req, res) => {
 
     console.log('Pending Cancellations:', pendingCancellations);
     console.log(AllCancellation.length) 
+    console.log(pipeline, "241")
 
   
     res.json({
@@ -315,7 +317,7 @@ exports.getSolvedRequest = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const solvedRequest = await Cancellation.aggregate([
+    const pipeline = [
       {
         $match: {
           'userId':  mongoose.Types.ObjectId(req.params.userId),
@@ -350,11 +352,23 @@ exports.getSolvedRequest = async (req, res) => {
           "EndTime":"$result2.trips_details.EndTime",
         }
       }
-    ]);
+    ];
 
-    console.log('Pending Cancellations:', solvedRequest);
+    const UserSolvedData = await Cancellation.aggregate(pipeline)
 
-    res.json(solvedRequest);
+   
+
+    pipeline.push(
+      { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
+      { $limit: 5 },
+    )
+
+    const solvedDatawithPigi = await Cancellation.aggregate(pipeline)
+
+    res.json({
+      solved:  solvedDatawithPigi,
+      totalData: UserSolvedData.length
+    });
   } catch (error) {
     console.error('Error fetching user bookings:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -377,7 +391,7 @@ exports.getAdminResolvedReq = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const solvedCancellations = await Cancellation.aggregate([
+    const pipeline = [
       {
         $match: {
           // 'userId':  mongoose.Types.ObjectId(req.params.userId),
@@ -412,11 +426,21 @@ exports.getAdminResolvedReq = async (req, res) => {
           "EndTime":"$result2.trips_details.EndTime",
         }
       }
-    ]);
+    ];
 
-    // console.log('Pending Cancellations:', pendingCancellations);
+   const solvedData = await Cancellation.aggregate(pipeline)
 
-    res.json(solvedCancellations);
+   pipeline.push(
+    { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
+    { $limit: 5 },
+  )
+
+  const pageData = await Cancellation.aggregate(pipeline)
+
+    res.json({
+      adminData: pageData,
+      totalData : solvedData.length
+    });
   } catch (error) {
     console.error('Error fetching user bookings:', error);
     res.status(500).json({ error: 'Internal Server Error' });

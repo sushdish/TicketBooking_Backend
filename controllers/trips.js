@@ -126,25 +126,39 @@ exports.getTrip = (req, res) => {
 };
 
 exports.getAllTrip = async (req, res) => {
-
-console.log("Hits here")
   try {
 
-    Trip.find().exec((err, trips) => {
-      if (err) return handleError(res, "Could not get categories!", 400);
-      res.json(trips);
-    });
-
-    // const TotalTrips = await Trip.aggregate([])
-    // console.log(TotalTrips , "TotalTrips")
-
+    // Trip.find().exec((err, trips) => {
+    //   if (err) return handleError(res, "Could not get categories!", 400);
+    //   res.json(trips);
+    //   console.log(trips, "136")
+    // });
     const pipeline = [
-      { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
-      { $limit: 5 },
+      {
+        $match: {} 
+      }
     ]
 
+    const TotalTrips = await Trip.aggregate(pipeline)
+    console.log(TotalTrips , "TotalTrips") //all 12 trips in this
+    console.log(pipeline, "144") // $match in this pipeline
+
+     pipeline.push(
+      { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
+      { $limit: 5 },
+     )
+
     const result = await Trip.aggregate(pipeline)
-    res.json(result)
+    console.log(result, "149") //this has trips according to page 
+    //i.e page=1 5 trips, page=2 5 trips page=3 2 trips 
+    console.log(pipeline, "158") // $match $skip: 0, $limit:5
+
+    res.json({
+      trip: result,
+      totalTrips: TotalTrips.length,
+
+    })
+   
 
   } catch (error) {
     await logger.createLogger(error.message, "trips", "getAllTrip")

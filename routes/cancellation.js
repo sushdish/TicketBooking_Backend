@@ -12,7 +12,7 @@ router.param("userId", getUserByID);
 // router.param("tripId", getTripById);
 router.get("/pigination", pigination)
 router.post("/cancellation/:userId", isSignedIn, isAuthenticated, cancellation);
-router.get("/cancellation/:userId", isSignedIn, isAuthenticated, getUserCancellations)
+router.get("/cancellation/allcancellation/:userId", isSignedIn, isAuthenticated, getUserCancellations)
 router.get("/cancellation/pending/:userId", isSignedIn, isAuthenticated, isAdmin, getPendingCancellations )
 router.put("/cancellation/update/:userId", isSignedIn, isAuthenticated, isAdmin, adminReason )
 router.get("/cancellation/solved/:userId", isSignedIn, isAuthenticated,  getSolvedRequest )

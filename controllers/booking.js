@@ -65,10 +65,8 @@ exports.getUserBookings = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // const tripId = mongoose.Types.ObjectId(req.query.tripId);
-    // console.log(tripId, "WW");
-    // Use $match aggregation stage to filter bookings for the user
-    const userBookings = await Booking.aggregate([
+    
+    const pipeline = [
       {
         $match: {
           'userId':  mongoose.Types.ObjectId(req.params.userId), // Assuming the 'user' field in Booking model references the 'User' model
@@ -98,9 +96,21 @@ exports.getUserBookings = async (req, res) => {
           // "bookingId": "$_id"
         }
       }
-    ]);
+    ];
 
-    res.json(userBookings);
+    const AllBookings = await Booking.aggregate(pipeline)
+
+    pipeline.push(
+      { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
+      { $limit: 5 },
+    )
+
+    const userBookings = await Booking.aggregate(pipeline)
+
+    res.json({
+      bookings: userBookings,
+      totalBooking: AllBookings.length
+    });
   } catch (error) {
     console.error('Error fetching user bookings:', error);
     res.status(500).json({ error: 'Internal Server Error' });
