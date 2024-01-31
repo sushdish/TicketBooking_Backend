@@ -25,6 +25,14 @@ const cancellationSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    refundAmount: {
+        type: Number,
+       
+    },
+    // refundId: {
+    //     type:  ObjectId,
+    //     ref: "Refund"
+    // }
 
 })
 

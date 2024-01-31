@@ -143,25 +143,25 @@ exports.getUserCancellations = async (req, res) => {
   }
 };
 
-exports.pigination = async (req, res) => {
+// exports.pigination = async (req, res) => {
   
-console.log("Hits here")
-  try {
-    const pipeline = [
-      { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
-      { $limit: 5 },
-    ]
+// console.log("Hits here")
+//   try {
+//     const pipeline = [
+//       { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
+//       { $limit: 5 },
+//     ]
 
-    const result = await Cancellation.aggregate(pipeline)
-    res.json(result)
-  } catch (error) {
-    await logger.createLogger(error.message, "trips", "getAllTrip")
-    res.json(error.message)
-  }
+//     const result = await Cancellation.aggregate(pipeline)
+//     res.json(result)
+//   } catch (error) {
+//     await logger.createLogger(error.message, "trips", "getAllTrip")
+//     res.json(error.message)
+//   }
 
 
 
-};
+// };
 
 // Admin Side 
 exports.getPendingCancellations = async (req, res) => {    
@@ -268,11 +268,17 @@ exports.adminReason = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const {adminReason, cancellationId, bookingId, refundId} = req.body
+    const {adminReason, cancellationId, bookingId, refundAmount} = req.body
+
+    // const refund = await Refund.findById(refundId)
+
+    // if(!refund) {
+    //   return res.status(404).json({ error: 'Refund not found' });
+    // }
 
     const updatedCancellation = await Cancellation.findByIdAndUpdate(
       {_id: cancellationId},
-      {$set : {adminReason, requestSolved: true}},
+      {$set : {adminReason, refundAmount, requestSolved: true}},
       {new: true}
     )
 
@@ -447,13 +453,81 @@ exports.getAdminResolvedReq = async (req, res) => {
   }
 };
 
+exports.getUserRefunds = async (req, res) => {
+  const errors = validationResult(req);
 
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
-// await new EmailLog({
-//   from: "donotreply@nathanhr.ae",
-//   to: toEmail,
-//   cc: cc_emails,
-//   subject: subject,
-//   body: body, 
-//   attachments: attachments,
-// }).save()
+  try {
+    const { userId } = req.params;
+
+    // Check if the user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    
+    const pipeline = [
+      {
+        $match: {
+          'userId':  mongoose.Types.ObjectId(req.params.userId),
+          
+        }
+
+      },
+        {
+          $lookup: {
+            'from': 'trips',
+            'localField': 'tripId',
+            'foreignField': '_id',
+            'as':'result2'
+          }
+        },
+      {
+        '$unwind': {
+          'path': '$result2'
+        }
+      },
+      {
+        "$project":{
+          "tripName":"$result2.name",
+          "tripDestinationA":"$result2.trips_details.DestinationA",
+          "tripDestinationB":"$result2.trips_details.DestinationB" ,
+          "refundAmount": "$refundAmount"
+        }
+      }
+    ];
+
+   const refundAmount = await Cancellation.aggregate(pipeline)
+
+   pipeline.push(
+    { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
+    { $limit: 5 },
+  )
+
+  const amount = await Cancellation.aggregate(pipeline)
+
+    res.json({
+      refunds: amount,
+      totalRefund : refundAmount.length
+    });
+
+    // const AllBookings = await Booking.aggregate(pipeline)
+
+    // pipeline.push(
+    //   { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
+    //   { $limit: 5 },
+    // )
+
+    // const userBookings = await Booking.aggregate(pipeline)
+
+    res.json(pipeline);
+  } catch (error) {
+    console.error('Error fetching user bookings:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
