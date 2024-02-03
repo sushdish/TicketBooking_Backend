@@ -205,3 +205,14 @@ exports.getPigination = async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }; 
+
+  exports.getTotalBookings = async (req, res) => {
+    try {
+      const totalBookings = await Booking.countDocuments();
+  
+      res.json({ totalBookings });
+    } catch (error) {
+      console.error('Error fetching total bookings:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };

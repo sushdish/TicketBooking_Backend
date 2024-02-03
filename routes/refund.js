@@ -2,7 +2,7 @@ const express = require("express");
 
 const router = express.Router();
 
-const { refund, getUserRefunds} = require('../controllers/refund');
+const { refund, getTotalRefund} = require('../controllers/refund');
 const { getUserByID } = require("../controllers/user");
 // const {getTripById} = require("../controllers/product");
 const { isSignedIn, isAuthenticated, isAdmin } = require("../controllers/auth");
@@ -13,7 +13,7 @@ router.param("userId", getUserByID);
 // router.param("tripId", getTripById);
 
 router.post("/refund/:userId", isSignedIn, isAuthenticated, isAdmin, refund);
-// router.get("/refund/totalrefund/:userId", isSignedIn , isAdmin, getUserRefunds)
+router.get("/refund/salestotalrefund/:userId", isSignedIn , isAdmin, getTotalRefund)
 
 
 module.exports = router;
