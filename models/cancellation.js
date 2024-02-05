@@ -29,12 +29,8 @@ const cancellationSchema = new mongoose.Schema({
         type: Number,
        
     },
-    // refundId: {
-    //     type:  ObjectId,
-    //     ref: "Refund"
-    // }
 
-})
+}, { timestamps: true })
 
 cancellationSchema.statics.getPendingCancellations = async function () {
     return this.find({ requestSolved: false })

@@ -35,7 +35,14 @@ const userSchema = new mongoose.Schema(
     },
     rewardpoints: {
       type: Number,
-    }
+    },
+    ewallet: {
+       type: Number,
+    },
+    status: {
+      type: String,
+      default : "Active"
+  },
   },
   { timestamps: true }
 );
