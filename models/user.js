@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      trim: true,
+      
     },
     encry_password: {
       type: String,
@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
     },
     contact: {
       type: Number,
-      required: true,
+      
     },
     rewardpoints: {
       type: Number,

@@ -2,8 +2,11 @@ const express = require("express");
 const { check, validationResult } = require("express-validator");
 
 const router = express.Router();
+const { isSignedIn, isAuthenticated, isAdmin } = require("../controllers/auth");
+const { signup, signin, signout,  adminSignup , getAllAdmin, statusChange} = require("../controllers/auth");
+const { getUserByID } = require("../controllers/user");
 
-const { signup, signin, signout, isSignedIn } = require("../controllers/auth");
+router.param("userId", getUserByID);
 
 router.post(
   "/signup",
@@ -15,6 +18,31 @@ router.post(
   ],
   signup
 );
+
+
+router.post(
+  "/adminsignup",
+  [
+    check("email").isEmail().withMessage("Enter a valid email!"),
+    check("password")
+      .isLength({ min: 8 })
+      .withMessage("Password should be atleast 8 character long!"),
+  ],
+  adminSignup
+);
+
+router.get(
+  "/getAllAdmin/:userId",  isSignedIn, isAuthenticated, isAdmin,
+  
+  getAllAdmin
+);
+
+router.put(
+  "/status/update/:userId/:status",  isSignedIn, isAuthenticated, isAdmin,
+  
+  statusChange
+);
+
 
 router.post(
   "/signin",
