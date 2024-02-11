@@ -17,6 +17,7 @@ const cancellationRoutes = require("./routes/cancellation")
 const refundRoutes = require("./routes/refund")
 const configRoutes = require("./routes/config")
 const walletRoutes = require("./routes/wallet")
+const offerRoutes = require("./routes/offer")
 
 const PORT = process.env.PORT || 8000;
 const app = express();
@@ -50,6 +51,7 @@ app.use("/api", cancellationRoutes);
 app.use("/api", refundRoutes)
 app.use("/api", configRoutes);
 app.use("/api", walletRoutes);
+app.use("/api", offerRoutes)
 
 app.listen(PORT, () => {
   console.log(`Server running at port ${PORT}`);

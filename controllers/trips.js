@@ -42,32 +42,19 @@ exports.createTrip = async (req, res) => {
     const { userId } = req.params;
     const { categoryId } = req.body;
 
-    // req.body.trips_details.StartTime = moment(req.body.trips_details.StartTime).format('YYYY-MM-DD HH:mm:ss');
-    // req.body.trips_details.EndTime = moment(req.body.trips_details.EndTime).format('YYYY-MM-DD HH:mm:ss');
-
-    // const StartTime = moment(req.body.trips_details.StartTime)
-    // const EndTime = moment(req.body.trips_details.EndTime);
-
-    // const elapsedTime = EndTime.diff(StartTime, 'milliseconds');
-
-    // console.log(`[${moment().format('DD/MM/YYYY HH:mm:ss')}] ${req.method} ${req.url} - Status: ${res.statusCode} - Time taken: ${elapsedTime}ms`);
-
-
-
-    // Check if the user exists
+  
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Create a new trip with user information
     const trip = new Trip({
       userId: userId,
       categoryId,
       ...req.body,
     });
 
-    // Save the trip to the database
+   
     const savedTrip = await trip.save();
     // const categorryId = savedTrip.categoryId
     console.log(savedTrip, "2")
@@ -86,38 +73,6 @@ exports.createTrip = async (req, res) => {
   }
 };
 
-// const trip = new Trip(req.body)
-// trip.save((err, trip) => {
-//   if (err) return handleError(res, "Could not save product!", 400);
-//   res.json(trip)
-//   console.log(trip, "DD")
-// })
-
-
-
-// Trip.trips_details.StartTime = moment(trips_details.StartTime).format('YYYY-MM-DD HH:mm:ss');
-// Trip.trips_details.EndTime = moment(trips_details.EndTime).format('YYYY-MM-DD HH:mm:ss');
-// const{ name, category, tripNumber} = req.body
-
-//   const trip = new Trip({
-//     name,
-//     category,
-//     tripNumber,
-//     tripData, 
-//   });
-
-//   trip.save((err, savedTrip) => {
-//     if (err) {
-//       console.error(err)
-//       return res.json({message: "Unable to save trip"})
-//     }
-//     res.json(savedTrip)
-//   })
-// }
-
-
-
-
 
 exports.getTrip = (req, res) => {
   const trip = req.trip;
@@ -127,12 +82,6 @@ exports.getTrip = (req, res) => {
 
 exports.getAllTrip = async (req, res) => {
   try {
-
-    // Trip.find().exec((err, trips) => {
-    //   if (err) return handleError(res, "Could not get categories!", 400);
-    //   res.json(trips);
-    //   console.log(trips, "136")
-    // });
     const pipeline = [
       {
         $match: {} 
