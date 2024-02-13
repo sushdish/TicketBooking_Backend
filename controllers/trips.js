@@ -76,7 +76,7 @@ exports.createTrip = async (req, res) => {
 
 exports.getTrip = (req, res) => {
   const trip = req.trip;
-  // product.photo = undefined;
+ 
   return res.send(trip);
 };
 
@@ -89,8 +89,8 @@ exports.getAllTrip = async (req, res) => {
     ]
 
     const TotalTrips = await Trip.aggregate(pipeline)
-    console.log(TotalTrips , "TotalTrips") //all 12 trips in this
-    console.log(pipeline, "144") // $match in this pipeline
+    console.log(TotalTrips , "TotalTrips") 
+    console.log(pipeline, "144") 
 
      pipeline.push(
       { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
@@ -132,10 +132,10 @@ exports.updateTrip = (req, res) => {
   console.log(userId, "TT")
   const tripId = req.params.tripId;
   console.log(tripId, "YY")
-  const fields = req.body; // Assuming `fields` contains the fields you want to update
+  const fields = req.body; 
   console.log("Updating trip with fields:", fields);
 
-  // Check if the user exists
+  
   User.findById(userId, (err, user) => {
     if (err || !user) {
       return res.status(400).json({
@@ -143,7 +143,7 @@ exports.updateTrip = (req, res) => {
       });
     }
 
-    // Update the trip if the user exists
+   
     Trip.findOneAndUpdate(
       { _id: tripId },
       { $set: fields },
@@ -168,43 +168,26 @@ exports.updateTrip = (req, res) => {
 };
 
 
-
 exports.deleteTrip = (req, res) => {
-  Trip.findByIdAndDelete(req.trip._id, (err, trip) => {
-    if (err) return handleError(res, "Could not delete product!", 400);
-    else return handleSuccess(res, `Succesfully deleted ${trip.name}!`);
+  const {tripId} = req.params
+
+  Trip.findByIdAndDelete(
+    { _id: tripId },
+    (err, trip) => {
+      console.log(trip, "168")
+    if (err) {
+      console.error('Error updating trip:', err);
+      return res.status(404).json({
+        error: 'Could not update the trip',
+      });
+    }
+    if (!trip) {
+      return res.status(404).json({
+        error: 'Trip not found .',
+      });
+    }
+    res.json(trip);
+    console.log(trip)
   });
 };
 
-exports.getAllUniqueCategories = (req, res) => {
-  Product.distinct("category", {}, (err, categories) => {
-    if (err || !categories)
-      return handleError(res, "Could not fetch categories!", 400);
-
-    res.json(categories);
-  });
-};
-
-// exports.getPhoto = (req, res, next) => {
-//   if (req.product.photo.data) {
-//     res.set("Content-Type", req.product.photo.contentType);
-//     return res.send(req.product.photo.data);
-//   }
-//   next();
-// };
-
-exports.updateInventory = (req, res, next) => {
-  const bulkProductQueries = req.body.order.products.map((product) => {
-    return {
-      updateOne: {
-        filter: { _id: product._id },
-        update: { $inc: { stock: -product.count, sold: +product.count } },
-      },
-    };
-  });
-
-  Product.bulkWrite(bulkProductQueries, {}, (err) => {
-    if (err) return handleError(res, "Could not bulk update inventory!", 400);
-    next();
-  });
-};

@@ -39,11 +39,34 @@ exports.updateCategory = (req, res) => {
   });
 };
 
-exports.deleteCategory = (req, res) => {
-  const category = req.category;
+// exports.deleteCategory = (req, res) => {
+//   const category = req.category;
 
-  category.remove((err, category) => {
-    if (err) handleError(res, "Could not delete category!", 400);
-    handleSuccess(res, `Deleted ${category.name} category!`);
+//   category.remove((err, category) => {
+//     if (err) handleError(res, "Could not delete category!", 400);
+//     handleSuccess(res, `Deleted ${category.name} category!`);
+//   });
+// };
+
+exports.deleteCategory = (req, res) => {
+  const {categoryId} = req.params
+
+  Category.findByIdAndDelete(
+    { _id: categoryId },
+    (err, category) => {
+      console.log(category, "168")
+    if (err) {
+      console.error('Error updating trip:', err);
+      return res.status(404).json({
+        error: 'Could not update the Offer',
+      });
+    }
+    if (!category) {
+      return res.status(404).json({
+        error: 'Offer not found .',
+      });
+    }
+    res.json(category);
+    console.log(category)
   });
 };

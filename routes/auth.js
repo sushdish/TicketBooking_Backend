@@ -3,7 +3,7 @@ const { check, validationResult } = require("express-validator");
 
 const router = express.Router();
 const { isSignedIn, isAuthenticated, isAdmin } = require("../controllers/auth");
-const { signup, signin, signout,  adminSignup , getAllAdmin, statusChange} = require("../controllers/auth");
+const { signup, signin, signout,  adminSignup , getAllAdmin, statusChange, search} = require("../controllers/auth");
 const { getUserByID } = require("../controllers/user");
 
 router.param("userId", getUserByID);
@@ -35,6 +35,12 @@ router.get(
   "/getAllAdmin/:userId",  isSignedIn, isAuthenticated, isAdmin,
   
   getAllAdmin
+);
+
+router.get(
+  "/getUser/:userId",  isSignedIn, isAuthenticated, isAdmin,
+  
+  search
 );
 
 router.put(

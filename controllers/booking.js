@@ -206,13 +206,59 @@ exports.getPigination = async (req, res) => {
     }
   }; 
 
-  exports.getTotalBookings = async (req, res) => {
-    try {
-      const totalBookings = await Booking.countDocuments();
+  // exports.getTotalBookings = async (req, res) => {
+  //   try {
+  //     const totalBookings = await Booking.countDocuments();
   
-      res.json({ totalBookings });
-    } catch (error) {
-      console.error('Error fetching total bookings:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+  //     res.json({ totalBookings });
+  //   } catch (error) {
+  //     console.error('Error fetching total bookings:', error);
+  //     res.status(500).json({ error: 'Internal Server Error' });
+  //   }
+  // };
+
+  exports. getTotalBookings = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
-  };
+
+    try {
+
+      const pipeline = await Booking.aggregate([
+
+        {
+          $lookup: {
+            'from': 'trips',
+            'localField': 'tripId',
+            'foreignField': '_id',
+            'as':'result'
+          }
+        },
+        {
+          '$unwind': {
+            'path': '$result'
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: {$sum: {$toInt :'$result.trips_details.TicketAmount' }},
+          },
+        },
+        {
+          $project: {
+            _id:0,                 //0 = excluded the field
+            totalRevenue: 1         // 1 = include the field
+          }
+        },
+      ])
+
+      res.json(pipeline[0])
+      console.log(pipeline, "67")
+
+    }catch (error) {
+    console.error('Error fetching user bookings:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+  }

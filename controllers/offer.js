@@ -158,3 +158,26 @@ exports.bookOffer = async (req, res) => {
   exports.getOffer = (req, res) => {
     return res.json(req.offer)
 }
+
+exports.deleteOffer = (req, res) => {
+  const {offerId} = req.params
+
+  Offer.findByIdAndDelete(
+    { _id: offerId },
+    (err, offer) => {
+      console.log(offer, "168")
+    if (err) {
+      console.error('Error updating trip:', err);
+      return res.status(404).json({
+        error: 'Could not update the Offer',
+      });
+    }
+    if (!offer) {
+      return res.status(404).json({
+        error: 'Offer not found .',
+      });
+    }
+    res.json(offer);
+    console.log(offer)
+  });
+};

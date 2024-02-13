@@ -154,6 +154,10 @@ exports.signin = (req, res) => {
     if (!user.authenticate(password))
       return handleError(res, "Incorrect username or password!", 401);
 
+      if(user.status === "Inactive"){
+        return  handleError(res, "Your account  is  inactive  , Please comtact admin) ", 401)
+      } 
+
     const { _id, name, email, role } = user;
 
     // Create a token
@@ -164,6 +168,28 @@ exports.signin = (req, res) => {
     return res.json({ token, user: { _id, name, email, role } });
   });
 };
+
+exports.search = (req, res) => {
+  const errors = validationResult(req);
+  const { email } = req.body;
+
+  if (!errors.isEmpty()) {
+    return res.json({
+      err: errors.errors[0].msg,
+    });
+  }
+
+  User.findOne({ email: email }, (err, user) => {
+    if (err) return handleError(res, "Database error, please try again!", 400);
+
+    if (!user) return handleError(res, "User does not exist!", 400);
+
+    // const {email} = user
+
+      return res.json(user);
+  });
+};
+
 
 exports.signout = (req, res) => {
   res.clearCookie("token");
