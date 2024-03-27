@@ -29,9 +29,6 @@ exports.cancellation = async (req, res) => {
 
     const {tripId, bookingId, userReason} = req.body
 
-     // Convert tripId to ObjectID if it's a string
-    //  const objectIdTripId = mongoose.Types.ObjectId(tripId);
-
     const cancellation = new Cancellation({
         userId: userId,
         tripId,
@@ -107,6 +104,19 @@ exports.getUserCancellations = async (req, res) => {
         }
       },
       {
+        $lookup: {
+          'from': 'users',
+          'localField': 'userId',
+          'foreignField': '_id',
+          'as':'result1'
+        }
+      },
+      {
+        '$unwind': {
+          'path': '$result1'
+        }
+      },
+      {
         "$project":{
           "cancellationId":"$_id", 
           "bookingId":"$bookingId",
@@ -117,6 +127,10 @@ exports.getUserCancellations = async (req, res) => {
           "tripDestinationB":"$result2.trips_details.DestinationB" ,
           "StartTime":"$result2.trips_details.StartTime" ,
           "EndTime":"$result2.trips_details.EndTime",
+          "UserName": "$result1.name",
+          "UserEmail": "$result1.email",
+          "UserContact": "$result1.contact",
+          "ewallet": "$result1.ewallet"
         }
       }
     ];
@@ -143,26 +157,6 @@ exports.getUserCancellations = async (req, res) => {
   }
 };
 
-// exports.pigination = async (req, res) => {
-  
-// console.log("Hits here")
-//   try {
-//     const pipeline = [
-//       { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
-//       { $limit: 5 },
-//     ]
-
-//     const result = await Cancellation.aggregate(pipeline)
-//     res.json(result)
-//   } catch (error) {
-//     await logger.createLogger(error.message, "trips", "getAllTrip")
-//     res.json(error.message)
-//   }
-
-
-
-// };
-
 // Admin Side 
 exports.getPendingCancellations = async (req, res) => {    
   const errors = validationResult(req);
@@ -180,7 +174,6 @@ exports.getPendingCancellations = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    // const page = parseInt(req.query.page) || 1;
 
     const pipeline =  [
       {
@@ -204,6 +197,19 @@ exports.getPendingCancellations = async (req, res) => {
         }
       },
       {
+        $lookup: {
+          'from': 'users',
+          'localField': 'userId',
+          'foreignField': '_id',
+          'as':'result'
+        }
+      },
+      {
+        '$unwind': {
+          'path': '$result'
+        }
+      },
+      {
         "$project":{
           "cancellationId":"$_id", 
           "bookingId":"$bookingId",
@@ -214,6 +220,10 @@ exports.getPendingCancellations = async (req, res) => {
           "tripDestinationB":"$result2.trips_details.DestinationB" ,
           "StartTime":"$result2.trips_details.StartTime" ,
           "EndTime":"$result2.trips_details.EndTime",
+          "UserName": "$result.name",
+          "UserEmail": "$result.email",
+          "UserContact": "$result.contact",
+          "ewallet": "$result.ewallet"
         }
         
       },
@@ -270,11 +280,6 @@ exports.adminReason = async (req, res) => {
 
     const {adminReason, cancellationId, bookingId, refundAmount} = req.body
 
-    // const refund = await Refund.findById(refundId)
-
-    // if(!refund) {
-    //   return res.status(404).json({ error: 'Refund not found' });
-    // }
 
     const updatedCancellation = await Cancellation.findByIdAndUpdate(
       {_id: cancellationId},
@@ -289,16 +294,10 @@ exports.adminReason = async (req, res) => {
     const deleteBooking = await Bookings.findByIdAndDelete(
       {_id : bookingId},)
 
-    // const refund = await Refund.findByIdAndUpdate(
-    //   {_id: refundId},
-    //   {$set: {amount}},
-    //   {new: true}
-    //   )
 
     console.log(updatedCancellation);
     res.json(updatedCancellation);
     res.json(deleteBooking);
-    // res.json(refund)
   } catch (error) {
     console.error('Error fetching user bookings:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -345,6 +344,19 @@ exports.getSolvedRequest = async (req, res) => {
         }
       },
       {
+        $lookup: {
+          'from': 'users',
+          'localField': 'userId',
+          'foreignField': '_id',
+          'as':'result'
+        }
+      },
+      {
+        '$unwind': {
+          'path': '$result'
+        }
+      },
+      {
         "$project":{
           "cancellationId":"$_id", 
           "bookingId":"$bookingId",
@@ -356,6 +368,11 @@ exports.getSolvedRequest = async (req, res) => {
           "tripDestinationB":"$result2.trips_details.DestinationB" ,
           "StartTime":"$result2.trips_details.StartTime" ,
           "EndTime":"$result2.trips_details.EndTime",
+          "UserName": "$result.name",
+          "UserEmail": "$result.email",
+          "UserContact": "$result.contact",
+          "ewallet": "$result.ewallet",
+          "refundAmount": "$refundAmount"
         }
       }
     ];
@@ -419,6 +436,19 @@ exports.getAdminResolvedReq = async (req, res) => {
         }
       },
       {
+        $lookup: {
+          'from': 'users',
+          'localField': 'userId',
+          'foreignField': '_id',
+          'as':'result'
+        }
+      },
+      {
+        '$unwind': {
+          'path': '$result'
+        }
+      },
+      {
         "$project":{
           "cancellationId":"$_id", 
           "bookingId":"$bookingId",
@@ -430,6 +460,11 @@ exports.getAdminResolvedReq = async (req, res) => {
           "tripDestinationB":"$result2.trips_details.DestinationB" ,
           "StartTime":"$result2.trips_details.StartTime" ,
           "EndTime":"$result2.trips_details.EndTime",
+          "UserName": "$result.name",
+          "UserEmail": "$result.email",
+          "UserContact": "$result.contact",
+          "ewallet": "$result.ewallet",
+          "refundAmount": "$refundAmount"
         }
       }
     ];
@@ -515,14 +550,6 @@ exports.getUserRefunds = async (req, res) => {
       totalRefund : refundAmount.length
     });
 
-    // const AllBookings = await Booking.aggregate(pipeline)
-
-    // pipeline.push(
-    //   { $skip: JSON.parse(req.query.page) > 0 ? ((JSON.parse(req.query.page) - 1) * 5) : 0 },
-    //   { $limit: 5 },
-    // )
-
-    // const userBookings = await Booking.aggregate(pipeline)
 
     res.json(pipeline);
   } catch (error) {

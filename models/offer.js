@@ -20,7 +20,7 @@ const offerSchema = new mongoose.Schema({
         DestinationA: "",
         DestinationB: "",
         Price: 0,
-        EndDate: Date.now(),
+        EndDate: "",
         Message: "",
     },
     required: true,
